@@ -8,6 +8,7 @@
   <title>Visor Mundo</title>
 
   <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
 
@@ -29,30 +30,114 @@
       attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>' + 'contributors', maxZoom: 13
     });
 
-    var departamento = L.tileLayer.wms("http://localhost:8080/geoserver/wms/", {
-      layers: 'departamento',
-      format: 'image/png',
-      transparent: true,
-      tiled: true,
-      attribution: 'departamento'
-    });
-
-    var ciudades_Mundo = L.tileLayer.wms("http://localhost:8080/geoserver/wms", {
-      layers: 'earth:ciudades',
-      format: 'image/png',
-      transparent: true,
-      tiled: true,
-      attribution: 'ciudades'
+    var googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+      maxZoom: 20,
+      subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
     });
 
     var map = L.map("map", {
       center: [41.66, -4.72],
-      layers: [OSM, departamento,ciudades_Mundo],
+      layers: [googleSat],
       zoom: 5,
       scrollWheelZoom: true,
     });
 
     L.control.scale().addTo(map);
+
+    // URL del servicio WFS de GeoServer
+    var geoServerUrl = 'http://localhost:8080/geoserver/earth/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=earth%3ACIUDADES1&maxFeatures=50&outputFormat=application%2Fjson';
+
+    // Realizar la solicitud AJAX para obtener el GeoJSON
+    $.ajax({
+      url: geoServerUrl,
+      type: 'GET',
+      dataType: 'json',
+      success: function (data) {
+        // Procesar el GeoJSON y añadirlo al mapa
+        var ciudades_Mundo = L.geoJSON(data).addTo(map);
+        map.addLayer(ciudades_Mundo);
+      },
+      error: function (error) {
+        console.error('Error al cargar el GeoJSON:', error);
+      }
+    });
+
+    var colorMap = {
+      "A": "blue",
+      "B": "orange",
+      "C": "yellow",
+      "V": "green",
+      // Puedes agregar más iniciales y colores según sea necesario
+    };
+
+    var geoserverUrl2 = 'http://localhost:8080/geoserver/earth/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=earth%3ADeptos_4326&maxFeatures=50&outputFormat=application%2Fjson';
+    /*
+    $.ajax({
+      url: geoserverUrl2,
+      type: 'GET',
+      dataType: 'json',
+      success: function (data) {
+        var departamentos = L.geoJSON(data).addTo(map);
+        map.addLayer(departamentos);
+      },
+      error: function (error) {
+        console.error('Error al cargar el geoJSON', error);
+      }
+
+    });
+  */
+
+    $.ajax({
+      url: geoserverUrl2,
+      type: 'GET',
+      dataType: 'json',
+      success: function (data) {
+        // Procesar el GeoJSON y añadirlo al mapa
+        var departamentos = L.geoJSON(data, {
+          style: function (feature) {
+            // Obtener el nombre del departamento
+            // var nombre = feature.properties.nom_depart;
+            var nombre = feature.properties.NOM_DEPART;
+
+            // Asegurarse de que el nombre esté definido y no sea null
+            if (nombre && nombre.length > 0) {
+              // Obtener la inicial del nombre
+              var inicial = nombre.charAt(0).toUpperCase();
+
+              // Obtener el color asociado a la inicial
+              var color = colorMap[inicial] || 'red';
+
+              // Devolver el estilo con el color
+              return {
+                fillColor: color,
+                color: color,
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 0.8
+              };
+            } else {
+              // Si el nombre no está definido, usar un color predeterminado
+              return {
+                fillColor: 'red',
+                color: 'red',
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 0.8
+              };
+            }
+          }
+        }).addTo(map);
+
+        map.addLayer(departamentos);
+      },
+      error: function (error) {
+        console.error('Error al cargar el GeoJSON', error);
+      }
+    });
+
+    // ...
+
+
   </script>
 </body>
 

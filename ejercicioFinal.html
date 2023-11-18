@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa GeoServer</title>
+    <!-- Incluye Leaflet y jQuery -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+
+<body>
+    <!-- Contenedor para el mapa -->
+    <div id="map" style="height: 400px;"></div>
+
+    <script>
+        // Tu código JavaScript vendrá aquí
+        // Configuración del mapa con Leaflet
+        var map = L.map('map').setView([0, 0], 2);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>' + 'contributors', maxZoom: 13
+        }).addTo(map);
+
+        // URL del servicio WMS de GeoServer
+        //var geoServerUrl = 'http://tu-geoserver.com/geoserver/NombreDeLaCapa/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=NombreDeLaCapa&outputFormat=application/json';
+        var geoServerUrl = 'http://localhost:8080/geoserver/earth/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=earth%3ACiudades_Mundo&maxFeatures=50&outputFormat=application%2Fjson';
+        // Realizar la solicitud AJAX para obtener el GeoJSON
+        $.ajax({
+            url: geoServerUrl,
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                // Procesar el GeoJSON y añadirlo al mapa
+                L.geoJSON(data).addTo(map);
+            },
+            error: function (error) {
+                console.error('Error al cargar el GeoJSON:', error);
+            }
+        });
+
+    </script>
+</body>
+
+</html>
