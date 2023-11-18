@@ -26,11 +26,11 @@
 
   <script>
     var OSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>' + 'contributors', maxZoom: 18
+      attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>' + 'contributors', maxZoom: 13
     });
 
-    var departamento = L.tileLayer.wms("http://localhost:8080/geoserver/wms", {
-      layers: 'earth:Deptos_4326',
+    var departamento = L.tileLayer.wms("http://localhost:8080/geoserver/wms/", {
+      layers: 'departamento',
       format: 'image/png',
       transparent: true,
       tiled: true,
@@ -38,7 +38,7 @@
     });
 
     var ciudades_Mundo = L.tileLayer.wms("http://localhost:8080/geoserver/wms", {
-      layers: 'earth:Ciudades_Mundo',
+      layers: 'earth:ciudades',
       format: 'image/png',
       transparent: true,
       tiled: true,
