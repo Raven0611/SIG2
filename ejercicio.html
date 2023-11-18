@@ -45,11 +45,11 @@
     L.control.scale().addTo(map);
 
     // URL del servicio WFS de GeoServer
-    var geoServerUrl = 'http://localhost:8080/geoserver/earth/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=earth%3ACIUDADES1&maxFeatures=50&outputFormat=application%2Fjson';
+    var ciudad = 'http://localhost:8080/geoserver/earth/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=earth%3ACIUDADES1&maxFeatures=50&outputFormat=application%2Fjson';
 
     // Realizar la solicitud AJAX para obtener el GeoJSON
     $.ajax({
-      url: geoServerUrl,
+      url: ciudad,
       type: 'GET',
       dataType: 'json',
       success: function (data) {
@@ -67,59 +67,25 @@
       "B": "orange",
       "C": "yellow",
       "V": "green",
-      // Puedes agregar más iniciales y colores según sea necesario
     };
 
-    var geoserverUrl2 = 'http://localhost:8080/geoserver/earth/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=earth%3ADeptos_4326&maxFeatures=50&outputFormat=application%2Fjson';
-    /*
+    var departamento = 'http://localhost:8080/geoserver/earth/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=earth%3ADeptos_4326&maxFeatures=50&outputFormat=application%2Fjson';
+
     $.ajax({
-      url: geoserverUrl2,
+      url: departamento,
       type: 'GET',
       dataType: 'json',
       success: function (data) {
-        var departamentos = L.geoJSON(data).addTo(map);
-        map.addLayer(departamentos);
-      },
-      error: function (error) {
-        console.error('Error al cargar el geoJSON', error);
-      }
-
-    });
-  */
-
-    $.ajax({
-      url: geoserverUrl2,
-      type: 'GET',
-      dataType: 'json',
-      success: function (data) {
-        // Procesar el GeoJSON y añadirlo al mapa
         var departamentos = L.geoJSON(data, {
           style: function (feature) {
-            // Obtener el nombre del departamento
-            // var nombre = feature.properties.nom_depart;
             var nombre = feature.properties.NOM_DEPART;
-
-            // Asegurarse de que el nombre esté definido y no sea null
             if (nombre && nombre.length > 0) {
-              // Obtener la inicial del nombre
+
               var inicial = nombre.charAt(0).toUpperCase();
-
-              // Obtener el color asociado a la inicial
               var color = colorMap[inicial] || 'red';
-
-              // Devolver el estilo con el color
               return {
                 fillColor: color,
                 color: color,
-                weight: 1,
-                opacity: 1,
-                fillOpacity: 0.8
-              };
-            } else {
-              // Si el nombre no está definido, usar un color predeterminado
-              return {
-                fillColor: 'red',
-                color: 'red',
                 weight: 1,
                 opacity: 1,
                 fillOpacity: 0.8
@@ -135,7 +101,20 @@
       }
     });
 
+    var paises ='http://localhost:8080/geoserver/earth/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=earth%3APAISES&maxFeatures=50&outputFormat=application%2Fjson';
+    $.ajax({
+      url: paises,
+      type: 'GET',
+      dataType: 'json',
+      success: function (data) {
+        var departamentos = L.geoJSON(data).addTo(map);
+        map.addLayer(departamentos);
+      },
+      error: function (error) {
+        console.error('Error al cargar el geoJSON', error);
+      }
 
+    });
 
   </script>
 </body>
