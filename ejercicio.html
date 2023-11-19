@@ -2,121 +2,154 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Visor Mundo</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visor Mundo</title>
 
-  <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
-  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.css" />
 
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
+    <style>
+        #map {
+            width: 100%;
+            height: 580px;
+            box-shadow: 5px 5px 5px #888;
+        }
 
-  <style>
-    #map {
-      width: 100%;
-      height: 580px;
-      box-shadow: 5px 5px 5px #888;
-    }
-  </style>
+        #minimap {
+            width: 150px;
+            height: 150px;
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            border: 2px solid #000;
+            border-radius: 4px;
+        }
+    </style>
 
 </head>
 
 <body>
-  <div id="map"></div>
+    <div id="map"></div>
+    <div id="minimap"></div>
 
-  <script>
-    var OSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>' + 'contributors', maxZoom: 13
-    });
+    <script>
+        var OSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>' + 'contributors', maxZoom: 13
+        });
 
-    var googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-      maxZoom: 20,
-      subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
-    });
+        var googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+            maxZoom: 20,
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+        });
 
-    var map = L.map("map", {
-      center: [41.66, -4.72],
-      layers: [googleSat],
-      zoom: 5,
-      scrollWheelZoom: true,
-    });
+        var map = L.map("map", {
+            center: [41.66, -4.72],
+            layers: [googleSat],
+            zoom: 5,
+            scrollWheelZoom: true,
+        });
 
-    L.control.scale().addTo(map);
+        var baseLayers = {
+            "Google Satellite": googleSat,
+            "OpenStreetMap": OSM,
+        };
 
-    // URL del servicio WFS de GeoServer
-    var ciudad = 'http://localhost:8080/geoserver/earth/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=earth%3ACIUDADES1&maxFeatures=50&outputFormat=application%2Fjson';
+        var ciudad = 'http://localhost:8080/geoserver/earth/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=earth%3Aciudades&maxFeatures=50&outputFormat=application%2Fjson';
 
-    // Realizar la solicitud AJAX para obtener el GeoJSON
-    $.ajax({
-      url: ciudad,
-      type: 'GET',
-      dataType: 'json',
-      success: function (data) {
-        // Procesar el GeoJSON y añadirlo al mapa
-        var ciudades_Mundo = L.geoJSON(data).addTo(map);
-        map.addLayer(ciudades_Mundo);
-      },
-      error: function (error) {
-        console.error('Error al cargar el GeoJSON:', error);
-      }
-    });
-
-    var colorMap = {
-      "A": "blue",
-      "B": "orange",
-      "C": "yellow",
-      "V": "green",
-    };
-
-    var departamento = 'http://localhost:8080/geoserver/earth/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=earth%3ADeptos_4326&maxFeatures=50&outputFormat=application%2Fjson';
-
-    $.ajax({
-      url: departamento,
-      type: 'GET',
-      dataType: 'json',
-      success: function (data) {
-        var departamentos = L.geoJSON(data, {
-          style: function (feature) {
-            var nombre = feature.properties.NOM_DEPART;
-            if (nombre && nombre.length > 0) {
-
-              var inicial = nombre.charAt(0).toUpperCase();
-              var color = colorMap[inicial] || 'red';
-              return {
-                fillColor: color,
-                color: color,
-                weight: 1,
-                opacity: 1,
-                fillOpacity: 0.8
-              };
+        $.ajax({
+            url: ciudad,
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                var ciudades_Mundo = L.geoJSON(data).addTo(map);
+                map.addLayer(ciudades_Mundo);
+            },
+            error: function (error) {
+                console.error('Error al cargar el GeoJSON:', error);
             }
-          }
-        }).addTo(map);
+        });
 
-        map.addLayer(departamentos);
-      },
-      error: function (error) {
-        console.error('Error al cargar el GeoJSON', error);
-      }
-    });
+        var colorMap = {
+            "A": "blue",
+            "B": "orange",
+            "C": "yellow",
+            "V": "green",
+        };
 
-    var paises ='http://localhost:8080/geoserver/earth/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=earth%3APAISES&maxFeatures=50&outputFormat=application%2Fjson';
-    $.ajax({
-      url: paises,
-      type: 'GET',
-      dataType: 'json',
-      success: function (data) {
-        var departamentos = L.geoJSON(data).addTo(map);
-        map.addLayer(departamentos);
-      },
-      error: function (error) {
-        console.error('Error al cargar el geoJSON', error);
-      }
+        var departamento = 'http://localhost:8080/geoserver/earth/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=earth%3ADeptos_4326&maxFeatures=50&outputFormat=application%2Fjson';
 
-    });
+        $.ajax({
+            url: departamento,
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                var departamentos = L.geoJSON(data, {
+                    style: function (feature) {
+                        var nombre = feature.properties.NOM_DEPART;
+                        if (nombre && nombre.length > 0) {
+                            var inicial = nombre.charAt(0).toUpperCase();
+                            var color = colorMap[inicial] || 'red';
+                            return {
+                                fillColor: color,
+                                color: color,
+                                weight: 1,
+                                opacity: 1,
+                                fillOpacity: 0.8
+                            };
+                        }
+                    }
+                }).addTo(map);
 
-  </script>
+                map.addLayer(departamentos);
+            },
+            error: function (error) {
+                console.error('Error al cargar el GeoJSON', error);
+            }
+        });
+
+        var paises = 'http://localhost:8080/geoserver/earth/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=earth%3APAISES&maxFeatures=50&outputFormat=application%2Fjson';
+
+        $.ajax({
+            url: paises,
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                var departamentos = L.geoJSON(data).addTo(map);
+                map.addLayer(departamentos);
+            },
+            error: function (error) {
+                console.error('Error al cargar el geoJSON', error);
+            }
+        });
+
+        var OtroLayers = {
+            "Paises": paises,
+            "Departamentos": departamento,
+            "Ciudades": ciudad,
+        };
+
+        L.control.layers(baseLayers).addTo(map);
+        L.control.layers(OtroLayers).addTo(map);
+
+        var minimapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>' + 'contributors',
+            maxZoom: 13
+        });
+
+        var minimapOptions = {
+            toggleDisplay: true,
+            minimized: false,
+            layers: [minimapLayer],
+        };
+
+        var minimap = new L.Control.MiniMap(minimapLayer, minimapOptions);
+        minimap.addTo(map);
+    </script>
 </body>
 
 </html>
